@@ -11,16 +11,18 @@ class V2 {
     }
 
     scale(that){
-        return new V2()
+        return new V2(this.x * that, this.y * that)
     }
-    
 }
+    
 
-function fillCircle(context,x,y,radius,color="green")
+    
+function fillCircle(context,pos,radius,color="green")
 {
     
 context.beginPath();
-context.arc(x,y,radius,90,2*Math.PI);
+    context.arc(pos.x,pos.y,radius,0,2*Math.PI,false);
+
 
 context.fillStyle = color;
 
@@ -28,36 +30,65 @@ context.fill();
     
 }
 
-
 (() => {
+    
+    
     const canvas = document.getElementById("myCanvas");
     const radius = 69;
     const context = canvas.getContext("2d");
-    let start;
-
-    function step(timestamp){
-        
-    if(start = undefined){
-        start = timestamp
-    }
-    const dt = (timestamp - start) * 0.001;
-    start = timestamp 
+    const speed = 1000;
 
     
-     const width   = window.innerWidth;
-     const height  = window.innerHeight;
-     canvas.width  = width;
-     canvas.height = height;
+    let start;
 
-    fillCircle(context,width / 2,height / 2, radius,"red")
+    let pos = new V2(radius + 20,radius + 20)
+    let vel = new V2(0,0);
 
-     window.requestAnimationFrame(step);
+    let directionMap = {
+    'KeyW' : new V2(0,-speed),
+    'KeyS' : new V2(0,speed),
+    'KeyA' : new V2(-speed,0),
+    'KeyD' : new V2(speed,0)
+    };
+
+    
+    function step(timestamp){
+        
+    if(start === undefined){
+        start = timestamp
+    }
+        
+    const dt = (timestamp - start) * 0.001;
+    start = timestamp
+
+
+    const width   = window.innerWidth;
+    const height  = window.innerHeight;
+    canvas.width  = width;
+    canvas.height = height;
+
+    pos = pos.add(vel.scale(dt));
+        
+        
+    context.clearRect(0,0,width,height);
+    fillCircle(context,pos, radius,"red")
+        console.log(pos)
+        
+    window.requestAnimationFrame(step);
 }
     
 window.requestAnimationFrame(step);
 
-       
+    document.addEventListener('keydown', event => {
+        if (event.code in directionMap) {
+            vel = vel.add(directionMap[event.code]);
+        }
+    });
+    document.addEventListener('keyup', event => {
+        if (event.code in directionMap) {
+            vel = vel.sub(directionMap[event.code]);
+        }
+    });
 
-   
-
+    
 })();
