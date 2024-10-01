@@ -1,3 +1,4 @@
+
 class V2 {
     constructor(x,y){
         this.x = x;
@@ -13,36 +14,37 @@ class V2 {
     scale(that){
         return new V2(this.x * that, this.y * that)
     }
+    len(){
+        return Math.sqrt(this.x * this.x + this.y * this.y)
+    }
+    normalize() {
+        const n = this.len();
+        return n === 0 ? new V2(0, 0) : new V2(this.x / n, this.y / n);
+    }
 }
     
 
-    
 function fillCircle(context,pos,radius,color="green")
 {
     
-context.beginPath();
+    context.beginPath();
     context.arc(pos.x,pos.y,radius,0,2*Math.PI,false);
-
-
-context.fillStyle = color;
-
-context.fill();
+    context.fillStyle = color;
+    context.fill();
     
 }
 
 (() => {
-    
-    
     const canvas = document.getElementById("myCanvas");
     const radius = 69;
     const context = canvas.getContext("2d");
     const speed = 1000;
-
+    let vel = new V2(0,0);
     
+    let pressedKeys = new Set();
     let start;
 
     let pos = new V2(radius + 20,radius + 20)
-    let vel = new V2(0,0);
 
     let directionMap = {
     'KeyW' : new V2(0,-speed),
@@ -52,11 +54,11 @@ context.fill();
     };
 
     
-    function step(timestamp){
+function step(timestamp){
         
-    if(start === undefined){
-        start = timestamp
-    }
+        if(start === undefined){
+            start = timestamp
+        }
         
     const dt = (timestamp - start) * 0.001;
     start = timestamp
@@ -67,28 +69,37 @@ context.fill();
     canvas.width  = width;
     canvas.height = height;
 
+    
+    vel = new V2(0,0)
+    for (let key of pressedKeys){
+        if(key in directionMap){
+            vel = vel.add(directionMap[key]);
+        }
+    }
+    
+    vel = vel.normalize().scale(speed)
+    
     pos = pos.add(vel.scale(dt));
         
         
     context.clearRect(0,0,width,height);
     fillCircle(context,pos, radius,"red")
-        console.log(pos)
-        
+
+   
+    
     window.requestAnimationFrame(step);
 }
     
-window.requestAnimationFrame(step);
-
-    document.addEventListener('keydown', event => {
-        if (event.code in directionMap) {
-            vel = vel.add(directionMap[event.code]);
-        }
-    });
-    document.addEventListener('keyup', event => {
-        if (event.code in directionMap) {
-            vel = vel.sub(directionMap[event.code]);
-        }
-    });
+    window.requestAnimationFrame(step);
 
     
+    document.addEventListener('keydown', event => {
+        pressedKeys.add(event.code);
+    });
+    document.addEventListener('keyup',   event => {
+        pressedKeys.delete(event.code);
+    });
+    
+   
+
 })();
